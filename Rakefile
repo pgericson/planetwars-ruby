@@ -4,10 +4,12 @@ class Fight
   attr_reader :turns
   attr_reader :winner
 
+  DEFAULT_BOT = "src/MyBot.rb"
+
   def initialize(map, bot1, bot2, options = {})
     @map = map
-    @bot1 = bot1
-    @bot2 = bot2
+    @bot1 = bot1 || DEFAULT_BOT
+    @bot2 = bot2 || DEFAULT_BOT
     @visualize = options.include?(:visualize) ? options[:visualize] : true
     @turns = options[:turns] || 1000
     @quiet = options[:quiet]
@@ -16,8 +18,10 @@ class Fight
   def bot_command(bot)
     if bot =~ /.jar/
       "java -jar #{bot}"
+    elsif bot =~ /.rb/
+      "ruby #{bot}"
     else
-      "ruby -d src/mybot.rb"
+      raise "Unknown bot type."
     end
   end
 
@@ -128,7 +132,7 @@ task :fightall do
   bot1 = ENV['bot1']
   bot2 = ENV['bot2']
   options = options_from_env
-  # options[:quiet] = true
+  options[:visualize] = false
   agg = FightAggregator.new(bot1, bot2, options)
   Dir.glob('maps/*').sort.each do |map|
     agg.fight(map)

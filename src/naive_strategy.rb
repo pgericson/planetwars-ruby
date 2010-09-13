@@ -1,8 +1,10 @@
 class NaiveStrategy
   def turn(pw)
-    num_fleets = 5
+    available_ships = pw.planets.friendly.ships
 
-    return unless pw.fleets.friendly.length < num_fleets
+    flying_ships = pw.fleets.friendly.ships
+
+    return if flying_ships > available_ships
 
     from = pw.planets.friendly.sort_by{|p| p.strength }.last
 

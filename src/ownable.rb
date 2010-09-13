@@ -6,6 +6,10 @@ module Ownable
     wrap select {|item| item.owner == player }
   end
 
+  def ships
+    inject(0) {|sum, item| sum + item.ships}
+  end
+
   def friendly
     wrap of(FRIENDLY)
   end
