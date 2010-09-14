@@ -44,24 +44,10 @@ class PlanetWars
       tokens = line.split(" ")
       next if tokens.length == 1
       if tokens[0] == "P"
-        raise "Invalid Planet record" if tokens.length != 6
-        p = Planet.new(planet_id,
-                       tokens[3].to_i, # owner
-                       tokens[4].to_i, # num_ships
-                       tokens[5].to_i, # growth_rate
-                       tokens[1].to_f, # x
-                       tokens[2].to_f) # y
+        @planets << Planet.parse(planet_id, tokens)
         planet_id += 1
-        @planets << p
       elsif tokens[0] == "F"
-        raise "Invalid Fleet record" if tokens.length != 7
-        f = Fleet.new(tokens[1].to_i, # owner
-                      tokens[2].to_i, # num_ships
-                      tokens[3].to_i, # source
-                      tokens[4].to_i, # destination
-                      tokens[5].to_i, # total_trip_length
-                      tokens[6].to_i) # turns_remaining
-        @fleets << f
+        @fleets << Fleet.parse(tokens)
       else
         raise "Invalid line"
       end
