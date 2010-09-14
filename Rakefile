@@ -13,7 +13,6 @@ class Fight
     @bot2 = bot2 || DEFAULT_BOT
     @visualize = options.include?(:visualize) ? options[:visualize] : true
     @turns = options[:turns] || 1000
-    @quiet = options[:quiet]
   end
 
   def bot_command(bot)
@@ -47,7 +46,7 @@ class Fight
       err_thread = Thread.new do
         while !stderr.eof?
           line = stderr.readline
-          puts line unless @quiet
+          puts line if Rake.application.options.trace
           lines << line
         end
       end
@@ -63,8 +62,12 @@ class Fight
   end
 
   def visualize
-    File.open("visualizer/games/#{DateTime.now.strftime("%Y-%m-%d_%H.%m.%S")}.game", "w") do |f|
-      f.write("player_one=#{@bot1}\nplayer_two=#{@bot2}\nplayback_string=")
+    bot1_name = File.basename(@bot1)
+    bot2_name = File.basename(@bot2)
+    mapname = File.basename(@map)
+
+    File.open("visualizer/games/#{bot1_name}_vs_#{bot2_name}_on_#{mapname}_#{DateTime.now.strftime("%Y-%m-%d_%H.%m.%S")}.game", "w") do |f|
+      f.write("player_one=#{bot1_name}\nplayer_two=#{bot2_name}\nplayback_string=")
       f.write(@output)
     end
   end
@@ -89,8 +92,8 @@ end
 
 class FightAggregator
   def initialize(bot1, bot2, options)
-    @bot1 = bot1
-    @bot2 = bot2
+    @bot1 = bot1 || DEFAULT_BOT
+    @bot2 = bot2 || DEFAULT_BOT
     @options = options
     @fights = []
   end
@@ -108,7 +111,7 @@ class FightAggregator
     puts "#{@bot2}:"
     puts "  Wins: #{@fights.select{|f| f.winner == 2}.size}"
     puts "  Avg Turns: #{@fights.select{|f| f.winner == 2}.map{|f| f.turns}.avg}"
-    puts "Draws: #{@fights.select{|f| f.winner == 0}.map{|f| f.turns}.avg}"
+    puts "Draws: #{@fights.select{|f| f.winner == 0}}"
   end
 end
 
@@ -134,7 +137,6 @@ task :fightall do
   bot1 = ENV['bot1']
   bot2 = ENV['bot2']
   options = options_from_env
-  options[:visualize] = false
   agg = FightAggregator.new(bot1, bot2, options)
   Dir.glob('maps/*').sort.each do |map|
     agg.fight(map)
