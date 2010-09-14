@@ -1,10 +1,10 @@
-class Planets < Array
+class Planets
   include Ownable
   def other
-    reject {|planet| planet.owner == 1 }
+    wrap(reject {|planet| planet.owner == 1 })
   end
 
   def growth_rate
-    inject(0) {|sum, p| sum + p.growth_rate}
+    total :growth_rate
   end
 end

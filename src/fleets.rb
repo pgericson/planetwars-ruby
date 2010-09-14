@@ -1,3 +1,3 @@
-class Fleets < Array
+class Fleets
   include Ownable
 end

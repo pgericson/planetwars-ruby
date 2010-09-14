@@ -13,7 +13,7 @@ class PlanetWars
   end
 
   def total_ships_of(player)
-    (fleets.of(player) + planets.of(player)).inject(0) {|sum, f| sum + f.ships }
+    fleets.of(player).ships + planets.of(player).ships
   end
 
   def distance(source, destination)

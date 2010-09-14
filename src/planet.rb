@@ -7,14 +7,6 @@ class Planet
     @growth_rate, @x, @y = growth_rate, x, y
   end
 
-  def add_ships(n)
-    @ships += amt
-  end
-
-  def remove_ships(n)
-    @ships -= n
-  end
-
   def strength
     @ships / (1 + @growth_rate)
   end
