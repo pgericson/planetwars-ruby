@@ -1,7 +1,7 @@
 class FightAggregator
   def initialize(bot1, bot2, options)
-    @bot1 = bot1 || DEFAULT_BOT
-    @bot2 = bot2 || DEFAULT_BOT
+    @bot1 = bot1 || Fight::DEFAULT_BOT
+    @bot2 = bot2 || Fight::DEFAULT_BOT
     @options = options
     @fights = []
   end

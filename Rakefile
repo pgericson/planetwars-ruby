@@ -39,7 +39,12 @@ task :fightall do
 end
 
 task :clean do
-  rm "visualizer/games/*.game" rescue nil
+  rm Dir["visualizer/games/*.game"] rescue nil
+end
+
+task :viz do
+  cd "visualizer"
+  `script/server > server.log &`
 end
 
 task :zip do
