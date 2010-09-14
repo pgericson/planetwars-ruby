@@ -1,119 +1,12 @@
 require 'open3'
 require 'date'
+require 'fileutils'
+include FileUtils::Verbose
 
-class Fight
-  attr_reader :turns
-  attr_reader :winner
-
-  DEFAULT_BOT = "src/MyBot.rb"
-
-  def initialize(map, bot1, bot2, options = {})
-    @map = map
-    @bot1 = bot1 || DEFAULT_BOT
-    @bot2 = bot2 || DEFAULT_BOT
-    @visualize = options.include?(:visualize) ? options[:visualize] : true
-    @turns = options[:turns] || 1000
-  end
-
-  def bot_command(bot)
-    if bot =~ /.jar/
-      "java -jar #{bot}"
-    elsif bot =~ /.rb/
-      "ruby #{bot}"
-    else
-      raise "Unknown bot type."
-    end
-  end
-
-  def fight
-    puts "Map #{@map}"
-    puts "#{@bot1} vs #{@bot2}"
-    play_game
-    parse_output
-    visualize if @visualize
-  end
-
-  private
-
-  def play_game
-    cmd = [
-      "java -jar tools/PlayGame.jar #{@map} 90000 #{@turns} game.log",
-      "\"#{bot_command(@bot1)}\"",
-      "\"#{bot_command(@bot2)}\""
-    ].join(' ')
-    lines = []
-    Open3.popen3(cmd) do |stdin, stdout, stderr|
-      err_thread = Thread.new do
-        while !stderr.eof?
-          line = stderr.readline
-          puts line if Rake.application.options.trace
-          lines << line
-        end
-      end
-
-      out_thread = Thread.new do
-        @output = stdout.readlines
-      end
-
-      err_thread.join
-      out_thread.join
-    end
-    @errput = lines
-  end
-
-  def visualize
-    bot1_name = File.basename(@bot1)
-    bot2_name = File.basename(@bot2)
-    mapname = File.basename(@map)
-
-    File.open("visualizer/games/#{bot1_name}_vs_#{bot2_name}_on_#{mapname}_#{DateTime.now.strftime("%Y-%m-%d_%H.%m.%S")}.game", "w") do |f|
-      f.write("player_one=#{bot1_name}\nplayer_two=#{bot2_name}\nplayback_string=")
-      f.write(@output)
-    end
-  end
-
-  def parse_output
-    @turns = @errput[-2].match(/Turn (\d+)/)[1].to_i
-    if @errput[-1].match(/Draw/)
-      @winner = 0
-    else
-      @winner = @errput[-1].match(/Player (\d)/)[1].to_i
-    end
-  end
-
-end
-
-class Array
-  def avg
-    return 0 if self.empty?
-    self.inject(0) {|t, i| t + i} / self.size
-  end
-end
-
-class FightAggregator
-  def initialize(bot1, bot2, options)
-    @bot1 = bot1 || DEFAULT_BOT
-    @bot2 = bot2 || DEFAULT_BOT
-    @options = options
-    @fights = []
-  end
-
-  def fight(map)
-    @fights << f = Fight.new(map, @bot1, @bot2, @options)
-    f.fight
-  end
-
-  def summary
-    puts "Num Fights: #{@fights.size}"
-    puts "#{@bot1}:"
-    puts "  Wins: #{@fights.select{|f| f.winner == 1}.size}"
-    puts "  Avg Turns: #{@fights.select{|f| f.winner == 1}.map{|f| f.turns}.avg}"
-    puts "#{@bot2}:"
-    puts "  Wins: #{@fights.select{|f| f.winner == 2}.size}"
-    puts "  Avg Turns: #{@fights.select{|f| f.winner == 2}.map{|f| f.turns}.avg}"
-    puts "Draws: #{@fights.select{|f| f.winner == 0}}"
-  end
-end
+$LOAD_PATH.unshift(File.join(File.dirname(__FILE__), "lib"))
+require 'core_ext'
+require 'fight'
+require 'fight_aggregator'
 
 def options_from_env
   options = {}
@@ -137,6 +30,7 @@ task :fightall do
   bot1 = ENV['bot1']
   bot2 = ENV['bot2']
   options = options_from_env
+  options[:visualize] = false
   agg = FightAggregator.new(bot1, bot2, options)
   Dir.glob('maps/*').sort.each do |map|
     agg.fight(map)
@@ -144,13 +38,13 @@ task :fightall do
   agg.summary
 end
 
-task 'build/zip' do
-  `mkdir -p build/zip`
+task :clean do
+  rm "visualizer/games/*.game" rescue nil
 end
 
 task :zip do
-  `rm bot.zip` if File.exists?('bot.zip')
-  Dir.chdir('src')
+  rm "bot.zip" if File.exists? "bot.zip"
+  cd "src"
   `zip -r ../bot.zip *.rb`
 end
 
