@@ -1,4 +1,5 @@
 require 'open3'
+require 'date'
 
 class Fight
   attr_reader :turns
@@ -62,9 +63,10 @@ class Fight
   end
 
   def visualize
-    p = IO.popen("java -jar tools/ShowGame.jar", 'w')
-    p.write(@output)
-    p.close
+    File.open("visualizer/games/#{DateTime.now.strftime("%Y-%m-%d_%H.%m.%S")}.game", "w") do |f|
+      f.write("player_one=#{@bot1}\nplayer_two=#{@bot2}\nplayback_string=")
+      f.write(@output)
+    end
   end
 
   def parse_output

@@ -1,0 +1,2 @@
+require 'visualizer'
+run Visualizer
