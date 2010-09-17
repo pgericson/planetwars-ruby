@@ -10,8 +10,12 @@ class Planets
 
   def process_fleet(fleet)
     to = self[fleet.destination]
-    Log.debug "To: #{to.inspect}"
     to.receive_ships(fleet.size, fleet.owner)
-    Log.debug "Received: #{to.inspect}"
+  end
+
+  def center
+    self.inject(Coordinate.new(0,0)) do |sum, planet|
+      sum + planet.pos
+    end / self.length
   end
 end

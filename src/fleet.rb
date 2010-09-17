@@ -8,12 +8,10 @@ class Fleet
  
   def initialize
     yield self
-    Log.debug "Parsed #{self.inspect}"
   end
 
   class << self
     def parse(tokens)
-      Log.debug "Parsing #{tokens.inspect}"
       raise "Invalid Fleet record" if tokens.length != 7
       self.new do |f|
         f.owner = tokens[1].to_i

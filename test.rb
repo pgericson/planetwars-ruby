@@ -5,6 +5,7 @@ require 'logger'
 Log = Logger.new(STDOUT)
 
 Log.info "Starting game"
+pw = nil
 File.open("testrun", "r") do |file|
   pw = PlanetWars.new(file)
   pw.play(NaiveStrategy.new)

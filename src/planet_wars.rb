@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
 require 'ownable'
+require 'coordinate'
 require 'fleet'
 require 'fleets'
 require 'planet'
@@ -44,14 +45,6 @@ class PlanetWars
     fleets.of(player).ships + planets.of(player).ships
   end
 
-  def distance(source, destination)
-    Math::hypot( (source.x - destination.x), (source.y - destination.y) )
-  end
-
-  def travel_time(source, destination)
-    distance(source, destination).ceil
-  end
-
   def issue_order(source, destination, count)
     source.send_ships(count)
     destination.receive_ships(count)
@@ -87,7 +80,7 @@ class PlanetWars
       end
 
       update(map)
-      Log.debug "World: #{self.inspect}"
+      #Log.debug "World: #{self.inspect}"
 
       Log.info "Playing #{strategy}"
       strategy.turn(self) unless game_over?

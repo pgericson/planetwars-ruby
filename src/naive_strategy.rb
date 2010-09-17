@@ -10,7 +10,7 @@ class NaiveStrategy
 
     to = pw.planets.other.sort_by{|p| p.strength}
 
-    pw.issue_order from, to.shift, from.ships / 3
+    pw.issue_order from, to.length > 1 ? to.shift : to.first, from.ships / 3
     pw.issue_order from, to.shift, from.ships / 3
   end
 end
