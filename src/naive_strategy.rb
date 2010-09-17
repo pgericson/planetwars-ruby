@@ -2,7 +2,7 @@ class NaiveStrategy
   def turn(pw)
     available_ships = pw.planets.friendly.ships
 
-    flying_ships = pw.fleets.friendly.ships
+    flying_ships = pw.fleets.friendly.size
 
     return if flying_ships > available_ships
 

@@ -8,8 +8,36 @@ require 'planets'
 
 class PlanetWars
   attr_reader :planets, :fleets
-  def initialize(game_state)
-    parse_game_state(game_state)
+
+  def initialize(input = STDIN)
+    @input = input
+    @planets = Planets.new
+  end
+  
+  def update(map)
+    Log.info "Updating map state"
+
+    @fleets = Fleets.new
+    lines = map.split("\n")
+    planet_id = 0
+
+    lines.each do |line|
+      Log.info "Input: #{line.inspect}"
+      line = line.split("#")[0]
+      tokens = line.split(" ")
+      next if tokens.length == 1
+      if tokens[0] == "P"
+        @planets[planet_id] ||= Planet.new(planet_id)
+        @planets[planet_id].update tokens
+        planet_id += 1
+      elsif tokens[0] == "F"
+        fleet = Fleet.parse(tokens)
+        @planets.process_fleet(fleet)
+        @fleets << fleet
+      else
+        raise "Invalid line"
+      end
+    end
   end
 
   def total_ships_of(player)
@@ -24,63 +52,55 @@ class PlanetWars
     distance(source, destination).ceil
   end
 
-  def issue_order(source, destination, num_ships)
-    puts "#{source.planet_id} #{destination.planet_id} #{num_ships}"
-    STDOUT.flush
+  def issue_order(source, destination, count)
+    source.send_ships(count)
+    destination.receive_ships(count)
+    order = "#{source.planet_id} #{destination.planet_id} #{count}"
+    Log.info "Order: #{order}"
+    puts order
   end
 
   def is_alive(player_id)
     (@planets.of(player_id).length > 0) || (@fleets.of(player_id).length > 0)
   end
 
-  def parse_game_state(s)
-    @planets = Planets.new
-    @fleets = Fleets.new
-    lines = s.split("\n")
-    planet_id = 0
-
-    lines.each do |line|
-      line = line.split("#")[0]
-      tokens = line.split(" ")
-      next if tokens.length == 1
-      if tokens[0] == "P"
-        @planets << Planet.parse(planet_id, tokens)
-        planet_id += 1
-      elsif tokens[0] == "F"
-        @fleets << Fleet.parse(tokens)
-      else
-        raise "Invalid line"
-      end
-    end
-  end
-  
   def game_over?
     planets.friendly.length == 0 || planets.hostile.length == 0
   end
 
-  def finish_turn
+  def go
+    Log.info "Go."
     puts "go"
+
     STDOUT.flush
   end
 
-  class << self
-    def turn(map)
-      pw = PlanetWars.new(map)
-      yield pw unless pw.game_over?
-      pw.finish_turn
-    end
-
-    def play(strategy)
-      loop do
-        map = ''
-        until map.strip.end_with? "go"
-          map << gets
-        end
-
-        turn(map) do |pw|
-          strategy.turn(pw)
-        end
+  def play(strategy)
+    @turn = 0
+    loop do
+      Log.info "Turn #{@turn}"
+      map = ''
+      until map.strip.end_with? "go"
+        line = @input.gets
+        return if line.nil?
+        map << line
       end
+
+      update(map)
+      Log.debug "World: #{self.inspect}"
+
+      Log.info "Playing #{strategy}"
+      strategy.turn(self) unless game_over?
+
+      go
+
+      @turn += 1
+    end
+  end
+
+  class << self
+    def play(strategy)
+      self.new.play(strategy)
     end
   end
 end

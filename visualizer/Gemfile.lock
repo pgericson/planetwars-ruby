@@ -1,7 +1,6 @@
 GEM
   remote: http://rubygems.org/
   specs:
-    haml (3.0.17)
     rack (1.2.1)
     shotgun (0.8)
       rack (>= 1.0)
@@ -12,6 +11,5 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  haml
   shotgun
   sinatra

@@ -2,7 +2,6 @@ require 'rubygems'
 require 'bundler/setup'
 
 require 'sinatra/base'
-require 'haml'
 
 class Visualizer < Sinatra::Base
   set :root, File.dirname(__FILE__)
