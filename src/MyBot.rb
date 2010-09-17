@@ -4,8 +4,10 @@ require 'planet_wars'
 require 'naive_strategy'
 require 'logger'
 
-Log = Logger.new("debug.log")
-Log.level = Logger::DEBUG
+debug = ENV['BOT_DEBUG'] == "true"
+Log = debug ? Logger.new("debug.log") : Logger.new(STDERR)
+
+Log.level = debug ? Logger::DEBUG : Logger::UNKNOWN
 
 Log.info "Starting new game"
 begin

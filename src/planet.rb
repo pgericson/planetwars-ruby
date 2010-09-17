@@ -17,9 +17,9 @@ class Planet
   end
 
   def desirability(from)
-    1 / @ships + 
-      0.2 * @growth_rate + 
-      1 / pos.distance(from)
+    0.4 / (1 + @ships)+ 
+      0.1 * @growth_rate + 
+      3 / (1 + pos.distance(from))
   end
 
   def friendly?

@@ -4,13 +4,27 @@ class NaiveStrategy
 
     flying_ships = pw.fleets.friendly.size
 
-    return if flying_ships > available_ships
+    return if 1.5 * flying_ships > available_ships
 
-    from = pw.planets.friendly.sort_by{|p| p.strength }.last
+    center = pw.planets.friendly.center
 
-    to = pw.planets.other.sort_by{|p| p.strength}
+    from_planets = pw.planets.friendly.sort_by{|p| p.strength }.reverse
 
-    pw.issue_order from, to.length > 1 ? to.shift : to.first, from.ships / 3
-    pw.issue_order from, to.shift, from.ships / 3
+    if pw.planets.hostile.ships < 0.5 * pw.planets.friendly.ships
+      target_planets = pw.planets.hostile
+    else
+      target_planets = pw.planets.other 
+    end
+
+    to = target_planets.sort_by{|p| p.desirability(center)}.reverse
+
+    attacking_planets = (from_planets.length.to_f / 4).ceil 
+
+    from_planets.take(attacking_planets).each do |from|
+      count = (from.ships / 2 - from.incoming_hostile)
+      next unless count > 0
+      pw.issue_order from, to.length > 1 ? to.shift : to.first, count / 2
+      pw.issue_order from, to.length > 1 ? to.shift : to.first, count / 2
+    end
   end
 end
