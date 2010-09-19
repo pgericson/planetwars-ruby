@@ -8,6 +8,8 @@ require 'planet'
 require 'planets'
 
 class PlanetWars
+  include Logging
+
   attr_reader :planets, :fleets
 
   def initialize(input = STDIN)
@@ -16,14 +18,14 @@ class PlanetWars
   end
   
   def update(map)
-    Log.info "Updating map state"
+    logger.info "Updating map state"
 
     @fleets = Fleets.new
     lines = map.split("\n")
     planet_id = 0
 
     lines.each do |line|
-      Log.info "Input: #{line.inspect}"
+      logger.info "Input: #{line.inspect}"
       line = line.split("#")[0]
       tokens = line.split(" ")
       next if tokens.length == 1
@@ -49,7 +51,7 @@ class PlanetWars
     source.send_ships(count)
     destination.receive_ships(count)
     order = "#{source.planet_id} #{destination.planet_id} #{count}"
-    Log.info "Order: #{order}"
+    logger.info "Order: #{order}"
     puts order
   end
 
@@ -62,7 +64,7 @@ class PlanetWars
   end
 
   def go
-    Log.info "Go."
+    logger.info "Go."
     puts "go"
 
     STDOUT.flush
@@ -71,7 +73,7 @@ class PlanetWars
   def play(strategy)
     @turn = 0
     loop do
-      Log.info "Turn #{@turn}"
+      logger.info "Turn #{@turn}"
       map = ''
       until map.strip.end_with? "go"
         line = @input.gets
@@ -80,9 +82,9 @@ class PlanetWars
       end
 
       update(map)
-      #Log.debug "World: #{self.inspect}"
+      #logger.debug "World: #{self.inspect}"
 
-      Log.info "Playing #{strategy}"
+      logger.info "Playing #{strategy}"
       strategy.turn(self) unless game_over?
 
       go

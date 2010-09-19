@@ -1,38 +1,43 @@
+require 'thor/shell'
+
 class Fight
   attr_reader :turns
   attr_reader :winner
+  attr_reader :bots
 
-  DEFAULT_BOT = "src/MyBot.rb"
+  def initialize(options = {})
+    @map = options[:map] || (maps = Dir.glob('maps/*'))[rand(maps.size)]
+    @bots = [
+      Bot.new(options[:bot] || Bot::DEFAULT_BOT),
+      Bot.new(options[:opponent] || Bot::DEFAULT_OPPONENT)
+    ]
+    @turns = options[:turns] || 500
+    @verbose = options[:verbose]
+    @shell = options[:shell] || Thor::Shell::Color.new
 
-  def initialize(map, bot1, bot2, options = {})
-    @map = map
-    @bot1 = bot1 || DEFAULT_BOT
-    @bot1_name = File.basename(@bot1)
-    @bot2 = bot2 || DEFAULT_BOT
-    @bot2_name = File.basename(@bot2)
-    @visualize = options[:visualize]
-    @turns = options[:turns] || 1000
     @time = DateTime.now
     @game_file = game_file
   end
 
-  def bot_command(bot)
-    if bot =~ /.jar/
-      "java -jar #{bot}"
-    elsif bot =~ /.rb/
-      "ruby #{bot}"
-    else
-      raise "Unknown bot type."
-    end
-  end
 
   def fight
-    puts "Map #{@map}"
-    puts "#{@bot1_name} vs #{@bot2_name}"
+    @shell.say @shell.set_color("#{@bots[0].name} vs #{@bots[1].name} on #{@map}", nil, true)
     play_game
     parse_output
+    @shell.say *self.outcome
     save_game
-    show_game if @visualize
+  end
+
+  def show_game
+    `gnome-open http://localhost:9393/game/#{File.basename(@game_file)}`
+  end
+
+  def outcome
+    {
+      0 => ["Draw.", :yellow],
+      1 => ["#{@bots[0].name} wins.", :green],
+      2 => ["#{@bots[1].name} wins.", :red]
+    }[@winner]
   end
 
   private
@@ -40,17 +45,24 @@ class Fight
   def play_game
     cmd = [
       "java -jar tools/PlayGame.jar #{@map} 90000 #{@turns} game.log",
-      "\"#{bot_command(@bot1)}\"",
-      "\"#{bot_command(@bot2)}\""
+      "\"#{@bots[0].command}\"",
+      "\"#{@bots[1].command}\""
     ].join(' ')
     lines = []
     Open3.popen3(cmd) do |stdin, stdout, stderr|
       err_thread = Thread.new do
         while !stderr.eof?
           line = stderr.readline
-          puts line if Rake.application.options.trace
+          if @verbose
+            @shell.puts line 
+          else
+            if line =~ /Turn (\d+)/
+              @shell.say ".", nil, false
+            end
+          end
           lines << line
         end
+        puts
       end
 
       out_thread = Thread.new do
@@ -65,17 +77,15 @@ class Fight
 
   def save_game
     File.open(@game_file, "w") do |f|
-      f.write("player_one=#{@bot1_name}\nplayer_two=#{@bot2_name}\nplayback_string=")
+      f.write("player_one=#{@bots[0].name}\nplayer_two=#{@bots[1].name}\nplayback_string=")
       f.write(@output)
     end
   end
 
-  def show_game
-    `gnome-open http://localhost:9393/game/#{File.basename(@game_file)}`
-  end
 
   def parse_output
-    @turns = @errput[-2].match(/Turn (\d+)/)[1].to_i
+    return unless @errput[-2] =~ /Turn (\d+)/
+    @turns = $1.to_i
     if @errput[-1].match(/Draw/)
       @winner = 0
     else
@@ -87,6 +97,6 @@ class Fight
     mapname = File.basename(@map)
     time = @time.strftime("%Y-%m-%d_%H.%m.%S")
 
-    "visualizer/games/#{@bot1_name}_vs_#{@bot2_name}_on_#{mapname}_#{time}.game"
+    "visualizer/games/#{@bots[0].name}_vs_#{@bots[1].name}_on_#{mapname}_#{time}.game"
   end
 end

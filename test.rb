@@ -1,12 +1,17 @@
-require 'src/planet_wars'
-require 'src/naive_strategy'
-require 'logger'
+$LOAD_PATH.unshift("src")
 
-Log = Logger.new(STDOUT)
+require 'logging'
+Logging.setup(:debug => true, :output => STDERR)
 
-Log.info "Starting game"
+require 'planet_wars'
+require 'strategies'
+
+include Logging
+
+logger.info "Starting game"
+
 pw = nil
 File.open("testrun", "r") do |file|
   pw = PlanetWars.new(file)
-  pw.play(NaiveStrategy.new)
+  pw.play(Strategies.setup)
 end

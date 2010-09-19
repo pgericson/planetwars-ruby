@@ -1,18 +1,19 @@
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 
+require 'logging'
+Logging.setup
+
 require 'planet_wars'
-require 'naive_strategy'
-require 'logger'
+require 'strategies'
 
-debug = ENV['BOT_DEBUG'] == "true"
-Log = debug ? Logger.new("debug.log") : Logger.new(STDERR)
+include Logging
 
-Log.level = debug ? Logger::DEBUG : Logger::UNKNOWN
+logger.info "Starting new game"
 
-Log.info "Starting new game"
 begin
-  PlanetWars.play(NaiveStrategy.new)
+  PlanetWars.play(Strategies.setup)
 rescue Exception => ex
-  Log.error ex
+  logger.error ex
 end
-Log.info "Game over"
+
+logger.info "Game over"
