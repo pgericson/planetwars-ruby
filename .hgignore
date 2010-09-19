@@ -2,3 +2,4 @@ glob:bot.zip
 glob:*.swp
 glob:game.log
 glob:*.game
+glob:*.log
