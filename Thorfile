@@ -44,6 +44,47 @@ class Default < Thor
     `zip -r ../bot.zip *.rb`
   end
 
+  desc "upload", "Upload bot.zip to the contest website."
+  def upload
+    invoke :zip
+    require "mechanize"
+
+    agent = Mechanize.new
+
+    say "Opening login page"
+    login_page = agent.get("http://ai-contest.com/login.php")
+    login = login_page.form("login_form")
+
+    credentials = YAML.load_file(File.join(File.dirname(__FILE__), ".login"))
+    login.username = credentials["username"]
+    login.password = credentials["password"]
+
+    say "Logging in as #{credentials["username"]}"
+    result = agent.submit(login)
+    unless result.links.first.text.strip.start_with? "My Profile"
+      say "Login failed!", :red
+      return
+    end
+
+    upload = agent.get("submit.php")
+    upload_form = upload.forms.first
+    upload_form.file_uploads.first.file_name = "bot.zip"
+
+    unless yes? "Are you sure you wish to upload?"
+      say "Upload aborted.", :red
+      return
+    end
+
+    say "Uploading bot"
+    resp agent.submit(upload.forms.first)
+
+    if resp.body =~ /Success!/
+      say "Submission successful.", :green
+    else
+      say "Submission failed!", :red
+    end
+  end
+
   desc "spec", "Run a rudimentary test against MyBot"
   def spec
     system "rspec spec/ --color"
