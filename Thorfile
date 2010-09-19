@@ -43,4 +43,9 @@ class Default < Thor
     cd("src")
     `zip -r ../bot.zip *.rb`
   end
+
+  desc "spec", "Run a rudimentary test against MyBot"
+  def spec
+    system "rspec spec/ --color"
+  end
 end

@@ -28,6 +28,7 @@ class FightAggregator
   end
 
   def fight(map)
+    @shell.say "#{@fights.length + 1}) "
     @fights << f = Fight.new(@options.merge({:map => map}))
     f.fight
   end
