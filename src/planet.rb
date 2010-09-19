@@ -13,13 +13,13 @@ class Planet
   end
 
   def strength
-    @ships + 5 * @growth_rate
+    @ships + @growth_rate
   end
 
   def desirability(from)
-    1 / (1 + @ships) + 
-    (hostile? ? 1 / (@growth_rate + 1) : @growth_rate) +
-    15 / (1 + pos.distance(from))
+    0.4 / (1 + @ships) + 
+    0.1 * @growth_rate + 
+    3 / (1 + pos.distance(from))
   end
 
   def friendly?
