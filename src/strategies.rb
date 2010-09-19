@@ -14,7 +14,7 @@ class Strategies
     def setup
       Strategies.new [
         NaiveStrategy.new,
-        #Reinforce.new
+        Reinforce.new
       ]
     end
   end
