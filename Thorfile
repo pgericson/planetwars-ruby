@@ -25,7 +25,7 @@ class Default < Thor
   end
 
   desc "fightall [OPPONENT]", "Fight on all maps"
-  method_options :turns => 500, :maps => "maps/*"
+  method_options :turns => 200, :maps => "maps/*"
   def fightall(opponent = Bot::DEFAULT_OPPONENT)
     agg = FightAggregator.new(options.merge({:opponent => opponent, :shell => self.shell}))
     begin
@@ -69,7 +69,7 @@ class Default < Thor
 
     upload = agent.get("submit.php")
     upload_form = upload.forms.first
-    upload_form.file_uploads.first.file_name = "bot.zip"
+    upload_form.file_uploads.first.file_name = File.join(File.dirname(__FILE__), "bot.zip")
 
     unless yes? "Are you sure you wish to upload?"
       say "Upload aborted.", :red
@@ -77,7 +77,7 @@ class Default < Thor
     end
 
     say "Uploading bot"
-    resp agent.submit(upload.forms.first)
+    resp = agent.submit(upload.forms.first)
 
     if resp.body =~ /Success!/
       say "Submission successful.", :green
