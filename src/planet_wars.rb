@@ -18,14 +18,11 @@ class PlanetWars
   end
   
   def update(map)
-    logger.info "Updating map state"
-
     @fleets = Fleets.new
     lines = map.split("\n")
     planet_id = 0
 
     lines.each do |line|
-      logger.info "Input: #{line.inspect}"
       line = line.split("#")[0]
       tokens = line.split(" ")
       next if tokens.length == 1
@@ -38,6 +35,7 @@ class PlanetWars
         @planets.process_fleet(fleet)
         @fleets << fleet
       else
+        logger.error "Invalid input: #{line.inspect}"
         raise "Invalid line"
       end
     end
@@ -51,7 +49,7 @@ class PlanetWars
     source.send_ships(count)
     destination.receive_ships(count)
     order = "#{source.planet_id} #{destination.planet_id} #{count}"
-    logger.info "Order: #{order}"
+    logger.info "Order: #{count} from #{source} to #{destination}"
     puts order
   end
 
@@ -71,6 +69,7 @@ class PlanetWars
   end
 
   def play(strategy)
+    logger.info "Playing #{strategy}"
     @turn = 0
     loop do
       logger.info "Turn #{@turn}"
@@ -82,9 +81,7 @@ class PlanetWars
       end
 
       update(map)
-      #logger.debug "World: #{self.inspect}"
 
-      logger.info "Playing #{strategy}"
       strategy.turn(self) unless game_over?
 
       go

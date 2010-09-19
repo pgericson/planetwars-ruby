@@ -17,9 +17,9 @@ class Planet
   end
 
   def desirability(from)
-    0.4 / (1 + @ships)+ 
-      0.1 * @growth_rate + 
-      3 / (1 + pos.distance(from))
+    30 * (1 / (1 + @ships)) + 
+    10 * @growth_rate + 
+    20 / (1 + pos.distance(from))
   end
 
   def friendly?
@@ -28,6 +28,14 @@ class Planet
 
   def hostile?
     @owner > Ownable::FRIENDLY
+  end
+
+  def shortfall
+    - self.surplus
+  end
+
+  def surplus
+    @ships - @incoming_hostile + @incoming_friendly
   end
 
   def update(tokens)
@@ -47,11 +55,15 @@ class Planet
   end
   
   def receive_ships(count, from = Ownable::FRIENDLY)
-    if from == Ownable::FRIENDLY
+    if from == owner
       @incoming_friendly += count
     else
       @incoming_hostile += count
     end
+  end
+
+  def to_s
+    "<Planet##{@planet_id}: #{@owner}, #{@ships} - #{@incoming_hostile} + #{@incoming_friendly} = #{surplus}>"
   end
 end
 

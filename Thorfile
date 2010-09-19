@@ -21,6 +21,7 @@ class Default < Thor
   def fight(opponent = Bot::DEFAULT_OPPONENT)
     @f = Fight.new(options.merge({:opponent => opponent, :shell => self.shell}))
     @f.fight
+    @f.show_game if options.show?
   end
 
   desc "fightall [OPPONENT]", "Fight on all maps"

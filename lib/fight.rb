@@ -95,8 +95,8 @@ class Fight
 
   def game_file
     mapname = File.basename(@map)
-    time = @time.strftime("%Y-%m-%d_%H.%m.%S")
+    time = @time.strftime("%Y-%m-%d_%H.%M.%S")
 
-    "visualizer/games/#{@bots[0].name}_vs_#{@bots[1].name}_on_#{mapname}_#{time}.game"
+    "visualizer/games/#{time}__#{@bots[1].name}_on_#{mapname}.game"
   end
 end

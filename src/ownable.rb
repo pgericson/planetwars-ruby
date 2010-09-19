@@ -6,6 +6,14 @@ module Ownable
     @array = array || []
   end
 
+  def to_ary
+    @array
+  end
+
+  def to_s
+    @array.map {|p| p.to_s}.join(", ")
+  end
+
   def respond_to?(method)
     super || @array.respond_to?(method)
   end
@@ -35,6 +43,10 @@ module Ownable
   def of(player = nil)
     return select {|item| yield(item.owner) } if block_given?
     return select {|item| item.owner == player } if player
+  end
+
+  def by(attribute)
+    sort_by {|item| item.send(attribute) }
   end
 
   def ships

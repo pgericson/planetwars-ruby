@@ -11,7 +11,7 @@ class Visualizer < Sinatra::Base
   end
 
   get '/' do
-    @games = Dir.glob(games_dir('*.game')).map {|game| File.basename(game) }
+    @games = Dir.glob(games_dir('*.game')).map {|game| File.basename(game) }.sort
     erb :index
   end
 
