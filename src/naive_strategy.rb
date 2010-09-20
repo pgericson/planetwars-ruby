@@ -1,40 +1,30 @@
 class NaiveStrategy
-  include Logging
-
   def turn(pw)
     available_ships = pw.planets.friendly.ships
 
     flying_ships = pw.fleets.friendly.size
 
-    ratio = pw.planets.friendly.total(:growth_rate) / (1 + pw.planets.hostile.total(:growth_rate))
-
     return if 1.5 * flying_ships > available_ships
 
     center = pw.planets.friendly.center
 
-    attack = pw.planets.hostile.ships < ratio * pw.planets.friendly.ships
+    from_planets = pw.planets.friendly.sort_by{|p| p.strength }.reverse
 
-    target_planets = attack ? pw.planets.hostile : pw.planets.other
+    if pw.planets.hostile.ships < 0.5 * pw.planets.friendly.ships
+      target_planets = pw.planets.hostile
+    else
+      target_planets = pw.planets.other 
+    end
 
-    from_planets = pw.planets.friendly.select{|p| p.surplus > 0}.by(:strength).reverse
+    to = target_planets.sort_by{|p| p.desirability(center)}.reverse
 
-    attacking_planets = (from_planets.length * 0.25).ceil
+    attacking_planets = (from_planets.length.to_f / 4).ceil 
 
-    to = target_planets.sort_by{|p| p.desirability(center)}.reverse.take(attacking_planets * 2)
-    from_planets = from_planets.take(attacking_planets)
-
-    logger.debug "Attacking: From #{from_planets} to #{to}"
-
-    from = from_planets.shift
-    to.each do |target|
-      while target.shortfall < 5
-        count = [(from.ships * 0.3), (target.ships * 1.1)].min.to_i
-        pw.issue_order from, target, count
-        if count < target.ships
-          return if from_planets.empty?
-          from = from_planets.pop
-        end
-      end
+    from_planets.take(attacking_planets).each do |from|
+      count = (from.ships / 2 - from.incoming_hostile)
+      next unless count > 0
+      pw.issue_order from, to.length > 1 ? to.shift : to.first, count / 2
+      pw.issue_order from, to.length > 1 ? to.shift : to.first, count / 2
     end
   end
 end
