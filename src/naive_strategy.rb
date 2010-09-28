@@ -3,7 +3,7 @@ class NaiveStrategy
     available_ships = pw.planets.friendly.ships
 
     flying_ships = pw.fleets.friendly.size
-
+    
     return if 1.5 * flying_ships > available_ships
 
     center = pw.planets.friendly.center
@@ -15,8 +15,11 @@ class NaiveStrategy
     else
       target_planets = pw.planets.other 
     end
-
-    to = target_planets.sort_by{|p| p.desirability(center)}.reverse
+    if pw.turn < 20
+      to = target_planets.sort_by{|p| p.start_desirability(center)}.reverse
+    else
+      to = target_planets.sort_by{|p| p.desirability(center)}.reverse
+    end
 
     attacking_planets = (from_planets.length.to_f / 4).ceil 
 

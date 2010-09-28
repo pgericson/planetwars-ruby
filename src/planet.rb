@@ -15,6 +15,12 @@ class Planet
   def strength
     @ships + @growth_rate
   end
+  
+  def start_desirability(from)
+    0.7 / (1 + @ships) +
+    2.0 * @growth_rate +
+    3 / (1 + pos.distance(from))
+  end
 
   def desirability(from)
     0.4 / (1 + @ships) + 
